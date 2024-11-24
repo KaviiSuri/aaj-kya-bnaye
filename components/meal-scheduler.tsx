@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { generateDailySchedule } from '@/lib/meals';
+import { generateDailySchedule, getRandomMeal } from '@/lib/meals';
 import { RefreshCw } from 'lucide-react';
 import { MealDisplay } from '@/components/meal-display';
 
@@ -13,6 +13,17 @@ export function MealScheduler() {
 
   const regenerateSchedule = () => {
     setSchedule(generateDailySchedule());
+  };
+
+  const changeMeal = (mealType: 'breakfast' | 'lunch' | 'dinner' | 'lunchAccompaniment' | 'dinnerAccompaniment') => {
+    setSchedule(prev => ({
+      ...prev,
+      [mealType]: mealType === 'breakfast' 
+        ? getRandomMeal('BREAKFAST')
+        : mealType.includes('Accompaniment') 
+          ? getRandomMeal('SALAD/ACCOMPANIMENT')
+          : getRandomMeal('DINNER/LUNCH')
+    }));
   };
 
   return (
@@ -32,15 +43,15 @@ export function MealScheduler() {
           </TabsList>
 
           <TabsContent value="all">
-            <MealDisplay schedule={schedule} view="all" />
+            <MealDisplay schedule={schedule} view="all" onChangeMeal={changeMeal} />
           </TabsContent>
 
           <TabsContent value="breakfast">
-            <MealDisplay schedule={schedule} view="breakfast" />
+            <MealDisplay schedule={schedule} view="breakfast" onChangeMeal={changeMeal} />
           </TabsContent>
 
           <TabsContent value="main">
-            <MealDisplay schedule={schedule} view="main" />
+            <MealDisplay schedule={schedule} view="main" onChangeMeal={changeMeal} />
           </TabsContent>
         </Tabs>
       </CardContent>
