@@ -5,6 +5,34 @@ export interface Meal {
   category: MealCategory;
 }
 
+export interface DailySchedule {
+  breakfast: Meal;
+  lunch: Meal;
+  dinner: Meal;
+  lunchAccompaniment: Meal;
+  dinnerAccompaniment: Meal;
+}
+
+export interface WeeklySchedule {
+  monday: DailySchedule | null;
+  tuesday: DailySchedule | null;
+  wednesday: DailySchedule | null;
+  thursday: DailySchedule | null;
+  friday: DailySchedule | null;
+  saturday: DailySchedule | null;
+  sunday: DailySchedule | null;
+}
+
+export const createEmptyWeeklySchedule = (): WeeklySchedule => ({
+  monday: null,
+  tuesday: null,
+  wednesday: null,
+  thursday: null,
+  friday: null,
+  saturday: null,
+  sunday: null,
+});
+
 export const meals: Meal[] = [
   // Dinner/Lunch items
   { name: 'Bhindi', category: 'DINNER/LUNCH' },
@@ -75,4 +103,49 @@ export function generateDailySchedule() {
     lunchAccompaniment,
     dinnerAccompaniment,
   };
+}
+
+export function generateWeeklySchedule(): WeeklySchedule {
+  return {
+    monday: generateDailySchedule(),
+    tuesday: generateDailySchedule(),
+    wednesday: generateDailySchedule(),
+    thursday: generateDailySchedule(),
+    friday: generateDailySchedule(),
+    saturday: generateDailySchedule(),
+    sunday: generateDailySchedule(),
+  };
+}
+
+export function regenerateDayInWeeklySchedule(schedule: WeeklySchedule, day: keyof WeeklySchedule): WeeklySchedule {
+  const newSchedule = { ...schedule };
+  const daySchedule: DailySchedule = {
+    breakfast: getRandomMeal('BREAKFAST'),
+    lunch: getRandomMeal('DINNER/LUNCH'),
+    dinner: getRandomMeal('DINNER/LUNCH'),
+    lunchAccompaniment: getRandomMeal('SALAD/ACCOMPANIMENT'),
+    dinnerAccompaniment: getRandomMeal('SALAD/ACCOMPANIMENT'),
+  };
+  newSchedule[day] = daySchedule;
+  return newSchedule;
+}
+
+export function regenerateMealInWeeklySchedule(
+  schedule: WeeklySchedule,
+  day: keyof WeeklySchedule,
+  mealType: keyof DailySchedule
+): WeeklySchedule {
+  const newSchedule = { ...schedule };
+  const currentDay = schedule[day];
+  if (!currentDay) return schedule;
+
+  const newDay = { ...currentDay };
+  newDay[mealType] = mealType === 'breakfast' 
+    ? getRandomMeal('BREAKFAST')
+    : mealType.includes('Accompaniment') 
+      ? getRandomMeal('SALAD/ACCOMPANIMENT')
+      : getRandomMeal('DINNER/LUNCH');
+
+  newSchedule[day] = newDay;
+  return newSchedule;
 }
