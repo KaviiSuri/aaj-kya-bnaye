@@ -34,20 +34,23 @@ export function Header({ roomCode, roomName }: HeaderProps) {
   };
 
   return (
-    <header className="flex items-center justify-between pb-8">
-      <div className="flex items-center gap-8">
+    <header className="flex items-center justify-between gap-1 pb-12">
+      <div className="flex items-center gap-4">
         <Link href="/">
           <Button variant="ghost" size="icon">
             <Home className="h-5 w-5" />
           </Button>
         </Link>
         <div className="flex flex-col">
-          <h1 className="text-3xl font-bold tracking-tight">Aaj Kya Bnaye?</h1>
+          <h1 className="text-3xl font-bold tracking-tight pb-1">
+            Aaj Kya Bnaye?
+          </h1>
+          <h2 className="text-md text-muted-foreground">
+            {roomName}
+          </h2>
           {roomCode && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>{roomName}</span>
-              <span>•</span>
-              <span>Room Code: {roomCode}</span>
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <span>Code: {roomCode}</span>
               <div className="flex items-center gap-1">
                 <TooltipProvider>
                   <Tooltip>
