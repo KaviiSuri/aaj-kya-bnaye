@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { storage } from '@/lib/supabase';
+import { getRoomHistory } from '@/lib/room-history';
+import { Clock, ArrowRight } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
@@ -14,6 +16,11 @@ export default function Home() {
   const [roomName, setRoomName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [roomHistory, setRoomHistory] = useState<Array<{ code: string; name: string; lastVisited: number }>>([]);
+
+  useEffect(() => {
+    setRoomHistory(getRoomHistory());
+  }, []);
 
   const handleJoinRoom = async () => {
     if (!roomCode) return;
@@ -54,6 +61,31 @@ export default function Home() {
   return (
     <main className="container mx-auto p-4 grid place-items-center min-h-screen">
       <div className="w-full max-w-md space-y-4">
+        {roomHistory.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Recently Visited Rooms</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {roomHistory.map((room) => (
+                <Button
+                  key={room.code}
+                  variant="outline"
+                  className="w-full justify-between"
+                  onClick={() => router.push(`/room/${room.code}`)}
+                >
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>{room.name}</span>
+                    <span className="text-xs text-muted-foreground">({room.code})</span>
+                  </div>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Join Room</CardTitle>

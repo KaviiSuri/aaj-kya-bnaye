@@ -7,6 +7,7 @@ import { MealScheduler } from '@/components/meal-scheduler';
 import { WeeklySchedule } from '@/components/weekly-schedule';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { storage } from '@/lib/supabase';
+import { addToRoomHistory } from '@/lib/room-history';
 
 export default function RoomPage({ params }: { params: { code: string } }) {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function RoomPage({ params }: { params: { code: string } }) {
           return;
         }
         setRoomName(room.name);
+        addToRoomHistory(room.code, room.name);
       } catch (err) {
         router.push('/');
       } finally {
