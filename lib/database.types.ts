@@ -34,29 +34,55 @@ export type Database = {
   }
   public: {
     Tables: {
+      rooms: {
+        Row: {
+          code: string
+          created_at: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          name?: string
+        }
+        Relationships: []
+      }
       schedules: {
         Row: {
           created_at: string
           date: string
-          id: string
+          id: number
+          room_code: string
           schedule: Json
-          user_id: string | null
         }
         Insert: {
           created_at?: string
           date: string
-          id?: string
+          id?: number
+          room_code: string
           schedule: Json
-          user_id?: string | null
         }
         Update: {
           created_at?: string
           date?: string
-          id?: string
+          id?: number
+          room_code?: string
           schedule?: Json
-          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "schedules_room_code_fkey"
+            columns: ["room_code"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["code"]
+          },
+        ]
       }
     }
     Views: {

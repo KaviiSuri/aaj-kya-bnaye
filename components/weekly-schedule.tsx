@@ -55,10 +55,14 @@ function EmptyDayState({ onGenerate }: { onGenerate: () => void }) {
   );
 }
 
-export function WeeklySchedule() {
+interface WeeklyScheduleProps {
+  roomCode: string;
+}
+
+export function WeeklySchedule({ roomCode }: WeeklyScheduleProps) {
   const [currentDate, setCurrentDate] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedDay, setSelectedDay] = useState<keyof WeeklySchedule>('monday');
-
+  
   const { 
     schedule, 
     isLoading,
@@ -66,7 +70,7 @@ export function WeeklySchedule() {
     regenerateWeek,
     regenerateDay,
     changeMeal,
-  } = useWeeklySchedule(currentDate);
+  } = useWeeklySchedule(currentDate, roomCode);
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const formatTabDate = (dayIndex: number) => {
@@ -74,8 +78,8 @@ export function WeeklySchedule() {
     return format(date, 'MMM d');
   };
 
-  const nextWeek = () => setCurrentDate(date => addWeeks(date, 1));
-  const previousWeek = () => setCurrentDate(date => subWeeks(date, 1));
+  const nextWeek = () => setCurrentDate((date: Date) => addWeeks(date, 1));
+  const previousWeek = () => setCurrentDate((date: Date) => subWeeks(date, 1));
 
   if (isLoading) {
     return (

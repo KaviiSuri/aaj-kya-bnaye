@@ -56,4 +56,4 @@ class LocalStorage implements Storage {
 }
 
 // Export a singleton instance
-export const storage = new LocalStorage(); 
+// export const storage = new LocalStorage(); 

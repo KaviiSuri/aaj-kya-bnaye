@@ -39,7 +39,11 @@ function EmptyState({ onGenerate }: { onGenerate: () => void }) {
   );
 }
 
-export function MealScheduler() {
+interface MealSchedulerProps {
+  roomCode: string;
+}
+
+export function MealScheduler({ roomCode }: MealSchedulerProps) {
   const [currentDate] = useState<Date>(() => startOfDay(new Date()));
   const { 
     schedule, 
@@ -47,7 +51,7 @@ export function MealScheduler() {
     generateForDay,
     regenerateSchedule,
     changeMeal,
-  } = useDailySchedule(currentDate);
+  } = useDailySchedule(currentDate, roomCode);
 
   if (isLoading) {
     return (
