@@ -8,14 +8,14 @@ import { startOfWeek, startOfDay } from 'date-fns';
 // Query keys
 export const scheduleKeys = {
   all: ['schedule'] as const,
-  weekly: (date: Date) => [...scheduleKeys.all, 'weekly', date] as const,
-  daily: (date: Date) => [...scheduleKeys.all, 'daily', date] as const,
+  weekly: (date: Date) => [...scheduleKeys.all, 'weekly', startOfWeek(date, { weekStartsOn: 1 })] as const,
+  daily: (date: Date) => [...scheduleKeys.all, 'daily', startOfDay(date)] as const,
 };
 
 // Weekly schedule hooks
-export function useWeeklySchedule(date: Date) {
+export function useWeeklySchedule(currentDate: Date) {
   const queryClient = useQueryClient();
-  const normalizedDate = startOfWeek(date, { weekStartsOn: 1 });
+  const normalizedDate = startOfWeek(currentDate, { weekStartsOn: 1 });
 
   const { data: schedule, isLoading } = useQuery({
     queryKey: scheduleKeys.weekly(normalizedDate),
@@ -23,54 +23,61 @@ export function useWeeklySchedule(date: Date) {
   });
 
   const { mutate: generateForWeek } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (date: Date = normalizedDate) => {
+      const weekStart = startOfWeek(date, { weekStartsOn: 1 });
       const newSchedule = generateWeeklySchedule();
-      storage.setWeeklySchedule(normalizedDate, newSchedule);
-      return newSchedule;
+      await storage.setWeeklySchedule(weekStart, newSchedule);
+      return { schedule: newSchedule, date: weekStart };
     },
-    onSuccess: (newSchedule) => {
-      queryClient.setQueryData(scheduleKeys.weekly(normalizedDate), newSchedule);
+    onSuccess: (data) => {
+      queryClient.setQueryData(scheduleKeys.weekly(data.date), data.schedule);
       // Invalidate any daily queries that fall within this week
       for (let i = 0; i < 7; i++) {
-        const date = new Date(normalizedDate);
-        date.setDate(date.getDate() + i);
-        queryClient.invalidateQueries({ queryKey: scheduleKeys.daily(date) });
+        const dayDate = new Date(data.date);
+        dayDate.setDate(dayDate.getDate() + i);
+        queryClient.invalidateQueries({ queryKey: scheduleKeys.daily(dayDate) });
       }
     },
   });
 
   const { mutate: regenerateWeek } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (date: Date = normalizedDate) => {
+      const weekStart = startOfWeek(date, { weekStartsOn: 1 });
       const newSchedule = generateWeeklySchedule();
-      storage.setWeeklySchedule(normalizedDate, newSchedule);
-      return newSchedule;
+      await storage.setWeeklySchedule(weekStart, newSchedule);
+      return { schedule: newSchedule, date: weekStart };
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(scheduleKeys.weekly(data.date), data.schedule);
     },
   });
 
   const { mutate: regenerateDay } = useMutation({
-    mutationFn: async (day: keyof WeeklySchedule) => {
+    mutationFn: async ({ date = normalizedDate, day }: { date?: Date; day: keyof WeeklySchedule }) => {
       if (!schedule) return null;
+      const weekStart = startOfWeek(date, { weekStartsOn: 1 });
       const newSchedule = regenerateDayInWeeklySchedule(schedule, day);
-      storage.setWeeklySchedule(normalizedDate, newSchedule);
-      return newSchedule;
+      await storage.setWeeklySchedule(weekStart, newSchedule);
+      return { schedule: newSchedule, date: weekStart };
     },
-    onSuccess: (newSchedule) => {
-      if (newSchedule) {
-        queryClient.setQueryData(scheduleKeys.weekly(normalizedDate), newSchedule);
+    onSuccess: (data) => {
+      if (data) {
+        queryClient.setQueryData(scheduleKeys.weekly(data.date), data.schedule);
       }
     },
   });
 
   const { mutate: changeMeal } = useMutation({
-    mutationFn: async ({ day, mealType }: { day: keyof WeeklySchedule; mealType: keyof DailySchedule }) => {
+    mutationFn: async ({ date = normalizedDate, day, mealType }: { date?: Date; day: keyof WeeklySchedule; mealType: keyof DailySchedule }) => {
       if (!schedule) return null;
+      const weekStart = startOfWeek(date, { weekStartsOn: 1 });
       const newSchedule = regenerateMealInWeeklySchedule(schedule, day, mealType);
-      storage.setWeeklySchedule(normalizedDate, newSchedule);
-      return newSchedule;
+      await storage.setWeeklySchedule(weekStart, newSchedule);
+      return { schedule: newSchedule, date: weekStart };
     },
-    onSuccess: (newSchedule) => {
-      if (newSchedule) {
-        queryClient.setQueryData(scheduleKeys.weekly(normalizedDate), newSchedule);
+    onSuccess: (data) => {
+      if (data) {
+        queryClient.setQueryData(scheduleKeys.weekly(data.date), data.schedule);
       }
     },
   });
@@ -86,9 +93,9 @@ export function useWeeklySchedule(date: Date) {
 }
 
 // Daily schedule hooks
-export function useDailySchedule(date: Date) {
+export function useDailySchedule(currentDate: Date) {
   const queryClient = useQueryClient();
-  const normalizedDate = startOfDay(date);
+  const normalizedDate = startOfDay(currentDate);
 
   const { data: schedule, isLoading } = useQuery({
     queryKey: scheduleKeys.daily(normalizedDate),
@@ -96,30 +103,38 @@ export function useDailySchedule(date: Date) {
   });
 
   const { mutate: generateForDay } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (date: Date = normalizedDate) => {
+      const dayStart = startOfDay(date);
       const newSchedule = generateDailySchedule();
-      storage.setDailySchedule(normalizedDate, newSchedule);
-      return newSchedule;
+      await storage.setDailySchedule(dayStart, newSchedule);
+      return { schedule: newSchedule, date: dayStart };
     },
-    onSuccess: (newSchedule) => {
-      queryClient.setQueryData(scheduleKeys.daily(normalizedDate), newSchedule);
+    onSuccess: (data) => {
+      queryClient.setQueryData(scheduleKeys.daily(data.date), data.schedule);
       // Invalidate the weekly query that contains this day
-      const weekStart = startOfWeek(normalizedDate, { weekStartsOn: 1 });
+      const weekStart = startOfWeek(data.date, { weekStartsOn: 1 });
       queryClient.invalidateQueries({ queryKey: scheduleKeys.weekly(weekStart) });
     },
   });
 
   const { mutate: regenerateSchedule } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (date: Date = normalizedDate) => {
+      const dayStart = startOfDay(date);
       const newSchedule = generateDailySchedule();
-      storage.setDailySchedule(normalizedDate, newSchedule);
-      return newSchedule;
+      await storage.setDailySchedule(dayStart, newSchedule);
+      return { schedule: newSchedule, date: dayStart };
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(scheduleKeys.daily(data.date), data.schedule);
+      const weekStart = startOfWeek(data.date, { weekStartsOn: 1 });
+      queryClient.invalidateQueries({ queryKey: scheduleKeys.weekly(weekStart) });
     },
   });
 
   const { mutate: changeMeal } = useMutation({
-    mutationFn: async (mealType: keyof DailySchedule) => {
-      if (!schedule) return Promise.reject('No schedule exists');
+    mutationFn: async ({ date = normalizedDate, mealType }: { date?: Date; mealType: keyof DailySchedule }) => {
+      if (!schedule) return null;
+      const dayStart = startOfDay(date);
       const newSchedule = {
         ...schedule,
         [mealType]: mealType === 'breakfast' 
@@ -128,13 +143,15 @@ export function useDailySchedule(date: Date) {
             ? generateDailySchedule().lunchAccompaniment
             : generateDailySchedule().lunch
       };
-      storage.setDailySchedule(normalizedDate, newSchedule);
-      return newSchedule;
+      await storage.setDailySchedule(dayStart, newSchedule);
+      return { schedule: newSchedule, date: dayStart };
     },
-    onSuccess: (newSchedule) => {
-      queryClient.setQueryData(scheduleKeys.daily(normalizedDate), newSchedule);
-      const weekStart = startOfWeek(normalizedDate, { weekStartsOn: 1 });
-      queryClient.invalidateQueries({ queryKey: scheduleKeys.weekly(weekStart) });
+    onSuccess: (data) => {
+      if (data) {
+        queryClient.setQueryData(scheduleKeys.daily(data.date), data.schedule);
+        const weekStart = startOfWeek(data.date, { weekStartsOn: 1 });
+        queryClient.invalidateQueries({ queryKey: scheduleKeys.weekly(weekStart) });
+      }
     },
   });
 

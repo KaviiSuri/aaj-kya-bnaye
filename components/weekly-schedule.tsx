@@ -104,7 +104,7 @@ export function WeeklySchedule() {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           {schedule && (
-            <Button onClick={() => regenerateWeek()} size="icon" variant="ghost">
+            <Button onClick={() => regenerateWeek(currentDate)} size="icon" variant="ghost">
               <RefreshCw className="h-4 w-4" />
             </Button>
           )}
@@ -115,7 +115,7 @@ export function WeeklySchedule() {
       </CardHeader>
       <CardContent>
         {!schedule ? (
-          <EmptyState onGenerate={() => generateForWeek()} />
+          <EmptyState onGenerate={() => generateForWeek(currentDate)} />
         ) : (
           <Tabs value={selectedDay} onValueChange={(value) => setSelectedDay(value as keyof WeeklySchedule)}>
             <TabsList className="grid w-full h-fit grid-cols-7">
@@ -133,7 +133,7 @@ export function WeeklySchedule() {
                   <h3 className="text-lg font-semibold capitalize">{day}</h3>
                   {schedule[day] && (
                     <Button 
-                      onClick={() => regenerateDay(day)} 
+                      onClick={() => regenerateDay({ day, date: currentDate }   )} 
                       variant="outline" 
                       size="sm"
                     >
@@ -149,7 +149,7 @@ export function WeeklySchedule() {
                     onChangeMeal={(mealType) => changeMeal({ day, mealType })} 
                   />
                 ) : (
-                  <EmptyDayState onGenerate={() => regenerateDay(day)} />
+                  <EmptyDayState onGenerate={() => regenerateDay({ day, date: currentDate })} />
                 )}
               </TabsContent>
             ))}

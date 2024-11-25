@@ -72,14 +72,14 @@ export function MealScheduler() {
           </div>
         </div>
         {schedule && (
-          <Button onClick={() => regenerateSchedule()} size="icon" variant="ghost">
+          <Button onClick={() => regenerateSchedule(currentDate)} size="icon" variant="ghost">
             <RefreshCw className="h-4 w-4" />
           </Button>
         )}
       </CardHeader>
       <CardContent>
         {!schedule ? (
-          <EmptyState onGenerate={() => generateForDay()} />
+          <EmptyState onGenerate={() => generateForDay(currentDate)} />
         ) : (
           <Tabs defaultValue="all" className="space-y-4">
             <TabsList className="grid w-full h-fit grid-cols-3">
@@ -89,15 +89,27 @@ export function MealScheduler() {
             </TabsList>
 
             <TabsContent value="all">
-              <MealDisplay schedule={schedule} view="all" onChangeMeal={changeMeal} />
+              <MealDisplay 
+                schedule={schedule} 
+                view="all" 
+                onChangeMeal={(mealType) => changeMeal({ date: currentDate, mealType })} 
+              />
             </TabsContent>
 
             <TabsContent value="breakfast">
-              <MealDisplay schedule={schedule} view="breakfast" onChangeMeal={changeMeal} />
+              <MealDisplay 
+                schedule={schedule} 
+                view="breakfast" 
+                onChangeMeal={(mealType) => changeMeal({ date: currentDate, mealType })} 
+              />
             </TabsContent>
 
             <TabsContent value="main">
-              <MealDisplay schedule={schedule} view="main" onChangeMeal={changeMeal} />
+              <MealDisplay 
+                schedule={schedule} 
+                view="main" 
+                onChangeMeal={(mealType) => changeMeal({ date: currentDate, mealType })} 
+              />
             </TabsContent>
           </Tabs>
         )}
